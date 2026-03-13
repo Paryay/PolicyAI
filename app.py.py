@@ -24,7 +24,15 @@ html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
 .stApp { background-color: #f4f6f9; }
 [data-testid="stSidebar"] { background-color: #0d1f35; }
 [data-testid="stSidebar"] * { color: rgba(255,255,255,0.85) !important; }
-[data-testid="stSidebar"] .stButton button { background: rgba(0,184,160,0.15) !important; border: 1px solid rgba(0,184,160,0.4) !important; color: #00b8a0 !important; border-radius: 8px !important; width: 100%; text-align: left; font-size: 13px; }
+[data-testid="stSidebar"] .stButton button {
+    background: rgba(0,184,160,0.15) !important;
+    border: 1px solid rgba(0,184,160,0.4) !important;
+    color: #00b8a0 !important;
+    border-radius: 8px !important;
+    width: 100%;
+    text-align: left;
+    font-size: 13px;
+}
 [data-testid="stSidebar"] .stButton button:hover { background: rgba(0,184,160,0.3) !important; }
 .metric-card { background: white; border-radius: 12px; padding: 1rem 1.25rem; border: 1px solid #e8ecf2; margin-bottom: 0.5rem; }
 .metric-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #8898aa; margin-bottom: 4px; }
@@ -42,6 +50,7 @@ html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
 </style>
 """, unsafe_allow_html=True)
 
+# ── Presets ───────────────────────────────────────────────────────────────────
 PRESETS = {
     "ACA 2026 Payment Notice": "ACA 2026 Notice of Benefit and Payment Parameters — Marketplace payment notice covering risk adjustment methodology updates, premium rate review, cost sharing limits, plan certification changes, and enrollee protections for plan year 2026.",
     "Essential Health Benefits": "ACA Essential Health Benefits (EHB) update — benchmark plan selection methodology, state flexibility in defining EHBs, habilitative services standards, and enforcement for qualified health plans.",
@@ -53,6 +62,7 @@ PRESETS = {
     "Part D Drug Pricing": "Medicare Part D drug pricing — negotiated prices, inflation rebates, out-of-pocket cap under Inflation Reduction Act, and plan bid impacts.",
 }
 
+# ── Text extraction ───────────────────────────────────────────────────────────
 def extract_text(uploaded_file):
     name = uploaded_file.name.lower()
     raw = uploaded_file.read()
@@ -72,30 +82,65 @@ def extract_text(uploaded_file):
         return raw.decode("utf-8", errors="ignore")[:15000], None
     return None, "Unsupported file type."
 
-def call_gemini(prompt: str, api_key: str) -> str:
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
-    payload = {"contents": [{"parts": [{"text": prompt}]}], "generationConfig": {"temperature": 0.2, "maxOutputTokens": 2048}}
-    res = requests.post(url, json=payload, timeout=60)
+# ── Groq API ──────────────────────────────────────────────────────────────────
+def call_groq(prompt: str, api_key: str) -> str:
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "model": "llama-3.3-70b-versatile",
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": 0.2,
+        "max_tokens": 2048
+    }
+    res = requests.post(url, headers=headers, json=payload, timeout=60)
     if not res.ok:
-        raise Exception(f"Gemini API error {res.status_code}: {res.text[:300]}")
-    return res.json()["candidates"][0]["content"]["parts"][0]["text"]
+        raise Exception(f"Groq API error {res.status_code}: {res.text[:300]}")
+    return res.json()["choices"][0]["message"]["content"]
 
+# ── Analysis ──────────────────────────────────────────────────────────────────
 def analyze_policy(text: str, api_key: str) -> dict:
-    prompt = f"""You are a senior healthcare regulatory analyst. Analyze this policy and return ONLY raw JSON — no markdown, no code fences, nothing else.
-
-Policy:
-\"\"\"{text[:12000]}\"\"\"
-
-Return ONLY this exact JSON:
-{{"policyName":"string","intro":"2-sentence plain-language overview","effectiveDate":"string","policyType":"ACA|Medicaid|Medicare|Other","regulatoryImpact":"High|Medium|Low","complianceComplexity":"High|Medium|Low","summary":["finding 1","finding 2","finding 3","finding 4"],"consumerImpact":["item1","item2","item3"],"payerImpact":["item1","item2","item3"],"providerImpact":["item1","item2","item3"],"actions":[{{"title":"string","detail":"string","priority":"High|Medium|Low","owner":"string"}},{{"title":"string","detail":"string","priority":"High|Medium|Low","owner":"string"}},{{"title":"string","detail":"string","priority":"High|Medium|Low","owner":"string"}}],"risks":[{{"level":"High|Medium|Low","risk":"string","area":"Operational|Legal|Financial|Clinical","mitigation":"string"}},{{"level":"High|Medium|Low","risk":"string","area":"Operational|Legal|Financial|Clinical","mitigation":"string"}},{{"level":"High|Medium|Low","risk":"string","area":"Operational|Legal|Financial|Clinical","mitigation":"string"}}],"timeline":[{{"date":"Mon YYYY","event":"string","detail":"string"}},{{"date":"Mon YYYY","event":"string","detail":"string"}},{{"date":"Mon YYYY","event":"string","detail":"string"}}]}}"""
-    raw = call_gemini(prompt, api_key)
+    prompt = (
+        "You are a senior healthcare regulatory analyst. "
+        "Analyze this policy and return ONLY raw JSON — no markdown, no code fences, nothing else at all.\n\n"
+        f"Policy text:\n\"\"\"\n{text[:12000]}\n\"\"\"\n\n"
+        "Return ONLY this exact JSON structure with no other text:\n"
+        '{"policyName":"string","intro":"2-sentence plain-language overview",'
+        '"effectiveDate":"string","policyType":"ACA|Medicaid|Medicare|Other",'
+        '"regulatoryImpact":"High|Medium|Low","complianceComplexity":"High|Medium|Low",'
+        '"summary":["finding 1","finding 2","finding 3","finding 4"],'
+        '"consumerImpact":["item1","item2","item3"],'
+        '"payerImpact":["item1","item2","item3"],'
+        '"providerImpact":["item1","item2","item3"],'
+        '"actions":['
+        '{"title":"string","detail":"string","priority":"High|Medium|Low","owner":"string"},'
+        '{"title":"string","detail":"string","priority":"High|Medium|Low","owner":"string"},'
+        '{"title":"string","detail":"string","priority":"High|Medium|Low","owner":"string"}],'
+        '"risks":['
+        '{"level":"High|Medium|Low","risk":"string","area":"Operational|Legal|Financial|Clinical","mitigation":"string"},'
+        '{"level":"High|Medium|Low","risk":"string","area":"Operational|Legal|Financial|Clinical","mitigation":"string"},'
+        '{"level":"High|Medium|Low","risk":"string","area":"Operational|Legal|Financial|Clinical","mitigation":"string"}],'
+        '"timeline":['
+        '{"date":"Mon YYYY","event":"string","detail":"string"},'
+        '{"date":"Mon YYYY","event":"string","detail":"string"},'
+        '{"date":"Mon YYYY","event":"string","detail":"string"}]}'
+    )
+    raw = call_groq(prompt, api_key)
     clean = raw.replace("```json", "").replace("```", "").strip()
     return json.loads(clean)
 
-def ask_question(question: str, analysis: dict, policy_text: str, api_key: str) -> str:
-    prompt = f"You analyzed this healthcare policy: {json.dumps(analysis)}. Source: \"{policy_text[:2000]}\". Answer concisely: {question}"
-    return call_gemini(prompt, api_key)
 
+def ask_question(question: str, analysis: dict, policy_text: str, api_key: str) -> str:
+    prompt = (
+        f"You analyzed this healthcare policy: {json.dumps(analysis)}. "
+        f"Source excerpt: \"{policy_text[:2000]}\". "
+        f"Answer this question concisely and helpfully: {question}"
+    )
+    return call_groq(prompt, api_key)
+
+# ── Badge helper ──────────────────────────────────────────────────────────────
 def badge(label, cls="type"):
     return f'<span class="badge badge-{cls.lower()}">{label}</span>'
 
@@ -103,11 +148,21 @@ def badge(label, cls="type"):
 with st.sidebar:
     st.markdown("## ⚕ PolicyAI")
     st.markdown("**Healthcare Regulation Analyzer**")
-    st.markdown("🟢 **100% Free — Google Gemini**")
+    st.markdown("🟢 **100% Free — Groq + Llama 3**")
     st.markdown("---")
-    st.markdown("**Get your FREE API key:**")
-    st.markdown("1. Go to [aistudio.google.com](https://aistudio.google.com)\n2. Sign in with Google\n3. Click **Get API Key**\n4. Copy and paste below")
-    api_key = st.text_input("Gemini API Key (free)", type="password", placeholder="AIza...", help="Free at aistudio.google.com — no credit card")
+    st.markdown("**Get your FREE Groq API key:**")
+    st.markdown(
+        "1. Go to [console.groq.com](https://console.groq.com)\n"
+        "2. Sign up free (Google login works)\n"
+        "3. Click **API Keys → Create API Key**\n"
+        "4. Paste it below"
+    )
+    api_key = st.text_input(
+        "Groq API Key (free)",
+        type="password",
+        placeholder="gsk_...",
+        help="Free at console.groq.com — no credit card needed"
+    )
     st.markdown("---")
     st.markdown("**ACA Quick Load**")
     for name in PRESETS:
@@ -116,7 +171,14 @@ with st.sidebar:
             st.session_state["analysis"] = None
             st.rerun()
     st.markdown("---")
-    st.markdown('<div style="font-size:11px;color:rgba(255,255,255,0.3);line-height:1.8">PDF · DOCX · TXT supported<br>Free: Gemini 1.5 Flash<br>Hosted free: Streamlit Cloud</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div style="font-size:11px;color:rgba(255,255,255,0.3);line-height:1.8">'
+        "PDF · DOCX · TXT supported<br>"
+        "Free: Groq + Llama 3.3 70B<br>"
+        "Hosted free: Streamlit Cloud"
+        "</div>",
+        unsafe_allow_html=True
+    )
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 st.markdown("# ⚕ PolicyAI — Healthcare Policy Analyzer")
@@ -155,7 +217,7 @@ if analyze_clicked:
     if not txt:
         st.error("Please enter policy text, upload a document, or select a preset from the sidebar.")
     elif not api_key:
-        st.error("Please enter your free Gemini API key in the sidebar. Get it free at aistudio.google.com — no credit card needed.")
+        st.error("Please enter your free Groq API key in the sidebar. Get it free at console.groq.com — no credit card needed.")
     else:
         prog = st.progress(0, text="Parsing regulatory text...")
         try:
@@ -178,6 +240,7 @@ analysis = st.session_state.get("analysis")
 if analysis:
     d = analysis
     st.markdown("---")
+
     c1, c2, c3, c4 = st.columns(4)
     with c1:
         st.markdown(f'<div class="metric-card"><div class="metric-label">Policy type</div><div class="metric-value">{badge(d["policyType"])}</div></div>', unsafe_allow_html=True)
@@ -233,7 +296,14 @@ if analysis:
 
     with tab5:
         for item in d["timeline"]:
-            st.markdown(f'<div class="timeline-item"><div class="timeline-date">{item["date"]}</div><div class="timeline-title">{item["event"]}</div><div class="timeline-desc">{item["detail"]}</div></div>', unsafe_allow_html=True)
+            st.markdown(
+                f'<div class="timeline-item">'
+                f'<div class="timeline-date">{item["date"]}</div>'
+                f'<div class="timeline-title">{item["event"]}</div>'
+                f'<div class="timeline-desc">{item["detail"]}</div>'
+                f'</div>',
+                unsafe_allow_html=True
+            )
 
     with tab6:
         st.markdown("Ask any follow-up question about this policy.")
@@ -249,12 +319,19 @@ if analysis:
     st.markdown("---")
     nl = "\n"
     summary_lines = nl.join(f"{i+1}. {s}" for i, s in enumerate(d['summary']))
-    consumer_lines = nl.join(f"• {s}" for s in d['consumerImpact'])
-    payer_lines = nl.join(f"• {s}" for s in d['payerImpact'])
-    provider_lines = nl.join(f"• {s}" for s in d['providerImpact'])
-    action_lines = nl.join(f"{i+1}. [{a['priority']}] {a['title']}\n   Owner: {a['owner']}\n   {a['detail']}" for i, a in enumerate(d['actions']))
-    risk_lines = nl.join(f"[{r['level']}] {r['risk']} ({r['area']})\n   Mitigation: {r['mitigation']}" for r in d['risks'])
+    consumer_lines = nl.join(f"- {s}" for s in d['consumerImpact'])
+    payer_lines = nl.join(f"- {s}" for s in d['payerImpact'])
+    provider_lines = nl.join(f"- {s}" for s in d['providerImpact'])
+    action_lines = nl.join(
+        f"{i+1}. [{a['priority']}] {a['title']}\n   Owner: {a['owner']}\n   {a['detail']}"
+        for i, a in enumerate(d['actions'])
+    )
+    risk_lines = nl.join(
+        f"[{r['level']}] {r['risk']} ({r['area']})\n   Mitigation: {r['mitigation']}"
+        for r in d['risks']
+    )
     timeline_lines = nl.join(f"{t['date']}: {t['event']} - {t['detail']}" for t in d['timeline'])
+
     memo = (
         "HEALTHCARE POLICY ANALYSIS\n"
         + "=" * 50 + "\n"
@@ -269,8 +346,9 @@ if analysis:
         + f"RECOMMENDED ACTIONS\n{action_lines}\n\n"
         + f"COMPLIANCE RISKS\n{risk_lines}\n\n"
         + f"KEY DATES\n{timeline_lines}\n\n"
-        + "Generated by PolicyAI - Powered by Google Gemini (Free)"
+        + "Generated by PolicyAI - Powered by Groq + Llama 3 (Free)"
     )
+
     ce1, ce2, _ = st.columns([1, 1, 4])
     with ce1:
         st.download_button("Download Memo", memo, file_name="policy-analysis.txt", mime="text/plain")
