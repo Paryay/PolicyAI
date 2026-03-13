@@ -73,7 +73,7 @@ def extract_text(uploaded_file):
     return None, "Unsupported file type."
 
 def call_gemini(prompt: str, api_key: str) -> str:
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
     payload = {"contents": [{"parts": [{"text": prompt}]}], "generationConfig": {"temperature": 0.2, "maxOutputTokens": 2048}}
     res = requests.post(url, json=payload, timeout=60)
     if not res.ok:
