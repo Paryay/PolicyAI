@@ -32,8 +32,79 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 html,body,[class*="css"]{font-family:'Inter',sans-serif !important;}
-.stApp{background:#f0f2f6 !important;}
-.main .block-container{background:#f0f2f6 !important;padding:1.5rem 2rem 4rem 2rem !important;max-width:1280px;}
+.stApp{background:#f0f4f8 !important;}
+.main .block-container{background:#f0f4f8 !important;padding:1.5rem 2rem 4rem 2rem !important;max-width:1280px;}
+
+/* Force all streamlit text to be dark and visible */
+.stApp p, .stApp span, .stApp label, .stApp div,
+.stMarkdown p, .stMarkdown span { color: #1e293b !important; }
+h1,h2,h3,h4 { color: #0f172a !important; }
+
+/* File uploader dark theme fix */
+[data-testid="stFileUploader"] {
+    background: #fff !important;
+    border: 2px dashed #c7d2fe !important;
+    border-radius: 12px !important;
+    padding: 8px !important;
+}
+[data-testid="stFileUploader"] label,
+[data-testid="stFileUploader"] p,
+[data-testid="stFileUploader"] span,
+[data-testid="stFileUploader"] div { color: #334155 !important; }
+[data-testid="stFileUploader"] small { color: #64748b !important; }
+[data-testid="stFileUploadDropzone"] { background: #f8fafc !important; border-radius: 8px !important; }
+
+/* Text area fix */
+.stTextArea textarea {
+    background: #f8fafc !important;
+    border: 1.5px solid #e2e8f0 !important;
+    border-radius: 10px !important;
+    color: #1e293b !important;
+    font-size: 14px !important;
+    padding: 12px 14px !important;
+}
+.stTextArea textarea:focus {
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.1) !important;
+}
+.stTextArea textarea::placeholder { color: #94a3b8 !important; }
+
+/* Password input */
+.stTextInput input {
+    background: #1e293b !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    color: #f1f5f9 !important;
+    border-radius: 8px !important;
+}
+
+/* Analyze button */
+.stButton>button[kind="primary"] {
+    background: #6366f1 !important;
+    border: none !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    border-radius: 10px !important;
+    padding: 10px 24px !important;
+    letter-spacing: 0.01em !important;
+}
+.stButton>button[kind="primary"]:hover {
+    background: #4f46e5 !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Clear button */
+.stButton>button[kind="secondary"] {
+    background: #ffffff !important;
+    border: 1.5px solid #e2e8f0 !important;
+    color: #475569 !important;
+    font-weight: 500 !important;
+    border-radius: 10px !important;
+}
+.stButton>button[kind="secondary"]:hover {
+    border-color: #6366f1 !important;
+    color: #6366f1 !important;
+}
 
 [data-testid="stSidebar"]{background:#0f172a !important;}
 [data-testid="stSidebar"] p,
@@ -378,11 +449,36 @@ with st.sidebar:
     st.caption("PDF · DOCX · TXT supported")
 
 # ── Header ────────────────────────────────────────────────────────────────────
-st.markdown("## ⚕ PolicyAI — Healthcare Policy Analyzer")
-st.markdown("For **Product Managers, Engineers, Platform & Compliance Teams** — upload any ACA / CMS document and get a full structured brief by team.")
+st.markdown("""
+<div style="background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);border-radius:16px;padding:32px 36px;margin-bottom:24px;">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;">
+        <div style="background:#6366f1;border-radius:12px;width:48px;height:48px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">⚕</div>
+        <div>
+            <div style="font-size:26px;font-weight:700;color:#ffffff;line-height:1.2;">PolicyAI — Healthcare Policy Analyzer</div>
+            <div style="font-size:13px;color:#94a3b8;margin-top:4px;">Private Marketplace Edition</div>
+        </div>
+    </div>
+    <div style="font-size:14px;color:#cbd5e1;line-height:1.7;max-width:780px;">
+        Upload any <strong style="color:#a5b4fc">ACA / CMS / Medicaid</strong> regulation and get a full structured brief for
+        <strong style="color:#a5b4fc">Product Managers</strong>, <strong style="color:#7dd3fc">Engineers</strong>,
+        <strong style="color:#c4b5fd">Platform Team</strong> and <strong style="color:#6ee7b7">Compliance</strong> in under 60 seconds.
+    </div>
+    <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
+        <span style="background:rgba(99,102,241,0.2);color:#a5b4fc;border:1px solid rgba(99,102,241,0.4);padding:4px 14px;border-radius:20px;font-size:12px;font-weight:500;">PDF · DOCX · TXT</span>
+        <span style="background:rgba(8,145,178,0.2);color:#7dd3fc;border:1px solid rgba(8,145,178,0.4);padding:4px 14px;border-radius:20px;font-size:12px;font-weight:500;">Groq + Llama 3</span>
+        <span style="background:rgba(5,150,105,0.2);color:#6ee7b7;border:1px solid rgba(5,150,105,0.4);padding:4px 14px;border-radius:20px;font-size:12px;font-weight:500;">Free to use</span>
+        <span style="background:rgba(124,58,237,0.2);color:#c4b5fd;border:1px solid rgba(124,58,237,0.4);padding:4px 14px;border-radius:20px;font-size:12px;font-weight:500;">8 Team Sections</span>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
-# ── Input ─────────────────────────────────────────────────────────────────────
-uploaded = st.file_uploader("📎 Upload PDF, DOCX, or TXT", type=["pdf","docx","txt"])
+# ── Input card ────────────────────────────────────────────────────────────────
+st.markdown("""
+<div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:14px;padding:24px 28px 8px 28px;margin-bottom:4px;">
+<div style="font-size:12px;font-weight:700;color:#6366f1;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px;">Upload or paste your policy document</div>
+""", unsafe_allow_html=True)
+
+uploaded = st.file_uploader("Upload PDF, DOCX, or TXT", type=["pdf","docx","txt"], label_visibility="collapsed")
 if uploaded and uploaded.name != st.session_state.get("uploaded_name",""):
     with st.spinner("Reading document..."):
         extracted, err = extract_text(uploaded)
@@ -394,20 +490,25 @@ if uploaded and uploaded.name != st.session_state.get("uploaded_name",""):
         st.session_state["analysis"]      = None
         st.success(f"✅ **{uploaded.name}** — {len(extracted):,} characters extracted")
 
+st.markdown('<p style="font-size:13px;font-weight:600;color:#64748b;margin:10px 0 4px 0;">Or paste policy text:</p>', unsafe_allow_html=True)
 policy_text = st.text_area(
-    "Or paste / type policy text:",
+    "Policy text",
     value=st.session_state["policy_text"],
-    height=100,
-    placeholder="Paste any ACA, CMS, Medicaid rule text — or pick a preset from the sidebar…"
+    height=110,
+    placeholder="Paste any ACA, CMS, Medicaid or Medicare rule text — or pick a preset from the sidebar…",
+    label_visibility="collapsed"
 )
 if policy_text != st.session_state["policy_text"]:
     st.session_state["policy_text"] = policy_text
 
-c1, c2, _ = st.columns([1.2, 1, 5])
+st.markdown("</div>", unsafe_allow_html=True)
+st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
+
+c1, c2, c3 = st.columns([2, 1.2, 4])
 with c1:
-    go = st.button("⚡ Analyze Policy", type="primary", use_container_width=True)
+    go = st.button("⚡  Analyze Policy", type="primary", use_container_width=True)
 with c2:
-    clear = st.button("🗑 Clear", use_container_width=True)
+    clear = st.button("🗑  Clear All", use_container_width=True)
 
 if clear:
     st.session_state["policy_text"]   = ""
