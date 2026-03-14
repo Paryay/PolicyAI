@@ -35,24 +35,31 @@ html,body,[class*="css"]{font-family:'Inter',sans-serif !important;}
 .stApp{background:#f0f4f8 !important;}
 .main .block-container{background:#f0f4f8 !important;padding:1.5rem 2rem 4rem 2rem !important;max-width:1280px;}
 
-/* Force all streamlit text to be dark and visible */
-.stApp p, .stApp span, .stApp label, .stApp div,
-.stMarkdown p, .stMarkdown span { color: #1e293b !important; }
+/* Force body text to be dark and visible - but NOT inside custom HTML divs */
+.stMarkdown > div > p { color: #1e293b !important; }
+.stApp > section label { color: #334155 !important; }
 h1,h2,h3,h4 { color: #0f172a !important; }
 
-/* File uploader dark theme fix */
-[data-testid="stFileUploader"] {
-    background: #fff !important;
+/* File uploader - force white background override dark theme */
+[data-testid="stFileUploader"],
+[data-testid="stFileUploader"] > div,
+[data-testid="stFileUploadDropzone"] {
+    background: #f8fafc !important;
     border: 2px dashed #c7d2fe !important;
     border-radius: 12px !important;
-    padding: 8px !important;
+}
+[data-testid="stFileUploader"] section,
+[data-testid="stFileUploader"] section > div {
+    background: #f8fafc !important;
+    border: none !important;
 }
 [data-testid="stFileUploader"] label,
 [data-testid="stFileUploader"] p,
 [data-testid="stFileUploader"] span,
-[data-testid="stFileUploader"] div { color: #334155 !important; }
-[data-testid="stFileUploader"] small { color: #64748b !important; }
-[data-testid="stFileUploadDropzone"] { background: #f8fafc !important; border-radius: 8px !important; }
+[data-testid="stFileUploader"] div,
+[data-testid="stFileUploader"] small,
+[data-testid="stFileUploader"] button { color: #334155 !important; }
+[data-testid="stFileUploader"] svg { fill: #6366f1 !important; }
 
 /* Text area fix */
 .stTextArea textarea {
@@ -450,24 +457,28 @@ with st.sidebar:
 
 # ── Header ────────────────────────────────────────────────────────────────────
 st.markdown("""
-<div style="background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);border-radius:16px;padding:32px 36px;margin-bottom:24px;">
-    <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;">
-        <div style="background:#6366f1;border-radius:12px;width:48px;height:48px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">⚕</div>
+<div style="background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);border-radius:16px;padding:32px 36px;margin-bottom:24px;position:relative;overflow:hidden;">
+    <div style="position:absolute;top:0;right:0;width:300px;height:300px;background:radial-gradient(circle,rgba(99,102,241,0.15) 0%,transparent 70%);pointer-events:none;"></div>
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px;">
+        <div style="background:#6366f1;border-radius:14px;width:52px;height:52px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;box-shadow:0 4px 14px rgba(99,102,241,0.4);">⚕</div>
         <div>
-            <div style="font-size:26px;font-weight:700;color:#ffffff;line-height:1.2;">PolicyAI — Healthcare Policy Analyzer</div>
-            <div style="font-size:13px;color:#94a3b8;margin-top:4px;">Private Marketplace Edition</div>
+            <div style="font-size:28px;font-weight:800;color:#ffffff !important;line-height:1.2;letter-spacing:-0.02em;text-shadow:0 2px 8px rgba(0,0,0,0.4);">PolicyAI</div>
+            <div style="font-size:14px;color:#94a3b8 !important;margin-top:3px;font-weight:400;">Healthcare Policy Analyzer &nbsp;·&nbsp; Private Marketplace Edition</div>
         </div>
     </div>
-    <div style="font-size:14px;color:#cbd5e1;line-height:1.7;max-width:780px;">
-        Upload any <strong style="color:#a5b4fc">ACA / CMS / Medicaid</strong> regulation and get a full structured brief for
-        <strong style="color:#a5b4fc">Product Managers</strong>, <strong style="color:#7dd3fc">Engineers</strong>,
-        <strong style="color:#c4b5fd">Platform Team</strong> and <strong style="color:#6ee7b7">Compliance</strong> in under 60 seconds.
+    <div style="font-size:15px;color:#e2e8f0 !important;line-height:1.75;max-width:760px;margin-bottom:18px;text-shadow:0 1px 4px rgba(0,0,0,0.3);">
+        Upload any <span style="color:#a5b4fc !important;font-weight:600;">ACA / CMS / Medicaid</span> regulation and instantly get a structured brief broken down for
+        <span style="color:#a5b4fc !important;font-weight:600;">Product Managers</span>,
+        <span style="color:#7dd3fc !important;font-weight:600;">Engineers</span>,
+        <span style="color:#c4b5fd !important;font-weight:600;">Platform Team</span> and
+        <span style="color:#6ee7b7 !important;font-weight:600;">Compliance</span> — in under 60 seconds.
     </div>
-    <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
-        <span style="background:rgba(99,102,241,0.2);color:#a5b4fc;border:1px solid rgba(99,102,241,0.4);padding:4px 14px;border-radius:20px;font-size:12px;font-weight:500;">PDF · DOCX · TXT</span>
-        <span style="background:rgba(8,145,178,0.2);color:#7dd3fc;border:1px solid rgba(8,145,178,0.4);padding:4px 14px;border-radius:20px;font-size:12px;font-weight:500;">Groq + Llama 3</span>
-        <span style="background:rgba(5,150,105,0.2);color:#6ee7b7;border:1px solid rgba(5,150,105,0.4);padding:4px 14px;border-radius:20px;font-size:12px;font-weight:500;">Free to use</span>
-        <span style="background:rgba(124,58,237,0.2);color:#c4b5fd;border:1px solid rgba(124,58,237,0.4);padding:4px 14px;border-radius:20px;font-size:12px;font-weight:500;">8 Team Sections</span>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <span style="background:rgba(99,102,241,0.25);color:#c7d2fe !important;border:1px solid rgba(99,102,241,0.5);padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;">📄 PDF · DOCX · TXT</span>
+        <span style="background:rgba(8,145,178,0.25);color:#bae6fd !important;border:1px solid rgba(8,145,178,0.5);padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;">⚡ Groq + Llama 3</span>
+        <span style="background:rgba(5,150,105,0.25);color:#a7f3d0 !important;border:1px solid rgba(5,150,105,0.5);padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;">✅ Free to use</span>
+        <span style="background:rgba(124,58,237,0.25);color:#ddd6fe !important;border:1px solid rgba(124,58,237,0.5);padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;">🏢 8 Team Sections</span>
+        <span style="background:rgba(217,119,6,0.25);color:#fde68a !important;border:1px solid rgba(217,119,6,0.5);padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;">📋 10 Key Findings</span>
     </div>
 </div>
 """, unsafe_allow_html=True)
